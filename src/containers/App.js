@@ -4,6 +4,8 @@ import Persons from '../components/Persons/Persons';
 import Cockpit from '../components/Cockpit/Cockpit';
 import withClass from '../hoc/withClass';
 
+export const AuthContext = React.createContext(false);
+
 class App extends Component {
 
 
@@ -15,7 +17,9 @@ class App extends Component {
       { id: 'tyjuy', name: 'Jelly', age: 22 },
       { id: '83wef', name: 'Babs', age: 42 }
     ],
-    showPersons: false
+    showPersons: false,
+    toggleClicked: 0,
+    authenticated: false
   }
 
   nameChangeHandler = (event, id) => {
@@ -38,8 +42,14 @@ class App extends Component {
 
   togglePersonHandler = () => {
     const doesShow = this.state.showPersons;
-    this.setState({ showPersons: !doesShow });
-
+    //functionally setting state helps ensure that the state is appropriately 
+    //changed for any given set state method
+    this.setState((prevState, props) => {
+      return {
+        showPersons: !doesShow,
+        toggleClicked: this.state.toggleClicked + 1
+      }
+    });
   }
 
   deletePersonHandler = (personIndex) => {
@@ -48,16 +58,25 @@ class App extends Component {
     this.setState({ persons: persons })
   }
 
+  loginHandler = () => {
+    this.setState({ authenticated: true });
+  }
+
+  // Allows syncing state and props before rendering
+  // static getDerivedStateFromProps(nextProps, prevState) {
+
+  // }
+
   render() {
 
     let persons = null;
 
     if (this.state.showPersons) {
-      persons = 
-          <Persons
-            persons={this.state.persons}
-            clicked={this.deletePersonHandler}
-            changed={this.nameChangeHandler} />;
+      persons =
+        <Persons
+          persons={this.state.persons}
+          clicked={this.deletePersonHandler}
+          changed={this.nameChangeHandler} />;
     }
 
     return (
@@ -65,8 +84,11 @@ class App extends Component {
         <Cockpit
           showPersons={this.state.showPersons}
           persons={this.state.persons}
+          login={this.loginHandler}
           clicked={this.togglePersonHandler} />
-        {persons}
+        <AuthContext.Provider value={this.state.authenticated}>
+          {persons}
+        </AuthContext.Provider>
       </React.Fragment>
     );
   }
